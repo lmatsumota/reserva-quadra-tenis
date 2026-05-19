@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 type Venue = {
   id: string;
@@ -23,7 +23,7 @@ export function VenueAdminPanel({ venueId }: { venueId: string }) {
   const [courtName, setCourtName] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
 
-  async function load() {
+  const load = useCallback(async () => {
     const res = await fetch(`/api/admin/venues/${venueId}`);
     const data = await res.json();
     if (res.ok) {
@@ -33,11 +33,11 @@ export function VenueAdminPanel({ venueId }: { venueId: string }) {
       );
       setPrice(String(data.venue.pricePerHour / 100));
     }
-  }
+  }, [venueId]);
 
   useEffect(() => {
-    load();
-  }, [venueId]);
+    void load();
+  }, [load]);
 
   async function saveVenue(e: React.FormEvent) {
     e.preventDefault();

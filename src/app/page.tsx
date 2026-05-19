@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { VenueCard } from "@/components/VenueCard";
 import { prisma } from "@/lib/db";
 import type { VenueListItem } from "@/lib/types";
@@ -38,12 +39,12 @@ export default async function HomePage() {
           as plataformas mais usadas por escolas e clubes no Brasil. Pague online
           com Pix ou cartão.
         </p>
-        <a
+        <Link
           href="/baixar"
           className="mt-5 inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold text-emerald-900"
         >
           Como baixar o app →
-        </a>
+        </Link>
       </section>
 
       <h2 className="mb-4 text-xl font-semibold">Escolas e clubes</h2>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 type User = {
@@ -27,26 +28,26 @@ export function SiteHeader() {
 
   return (
     <header className="border-b border-emerald-900/10 bg-white/80 backdrop-blur sticky top-0 z-10">
-      <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-        <a href="/" className="flex items-center gap-2 font-semibold text-emerald-900">
+      <Wrapper className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
+        <Link href="/" className="flex items-center gap-2 font-semibold text-emerald-900">
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-emerald-800 text-lg text-white">
             🎾
           </span>
           Reserva Quadra
-        </a>
+        </Link>
         <nav className="flex flex-wrap items-center gap-3 text-sm">
-          <a href="/baixar" className="text-emerald-800 hover:underline">
+          <Link href="/baixar" className="text-emerald-800 hover:underline">
             Baixar app
-          </a>
+          </Link>
           {user ? (
             <>
-              <a href="/minhas-reservas" className="hover:underline">
+              <Link href="/minhas-reservas" className="hover:underline">
                 Minhas reservas
-              </a>
+              </Link>
               {isAdmin && (
-                <a href="/admin" className="font-medium text-emerald-800 hover:underline">
+                <Link href="/admin" className="font-medium text-emerald-800 hover:underline">
                   Admin
-                </a>
+                </Link>
               )}
               <span className="text-[var(--muted)]">{user.name.split(" ")[0]}</span>
               <button
@@ -58,15 +59,25 @@ export function SiteHeader() {
               </button>
             </>
           ) : (
-            <a
+            <Link
               href="/entrar"
               className="rounded-lg bg-emerald-800 px-3 py-1.5 font-medium text-white hover:bg-emerald-900"
             >
               Entrar
-            </a>
+            </Link>
           )}
         </nav>
-      </div>
+      </Wrapper>
     </header>
   );
+}
+
+function Wrapper({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return <section className={className}>{children}</section>;
 }
