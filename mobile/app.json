@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Reserva Quadra",
+    "slug": "reserva-quadra-tenis",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#1b5e3b"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.reservaquadra.tenis"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1b5e3b"
+      },
+      "package": "com.reservaquadra.tenis"
+    },
+    "extra": {
+      "apiUrl": "http://localhost:3000"
+    }
+  }
+}

@@ -1,0 +1,114 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("postgresql://neondb_owner:npg_hGfqvm9JHsk1@ep-steep-feather-aqu6y8i6-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+}
+
+enum ProviderType {
+  INTERNAL
+  WIX
+  SIMPLYBOOK
+}
+
+enum UserRole {
+  PLAYER
+  VENUE_ADMIN
+  SUPER_ADMIN
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  CONFIRMED
+  CANCELLED
+  FAILED
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  REFUNDED
+}
+
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         UserRole  @default(PLAYER)
+  venueId      String?
+  venue        Venue?    @relation(fields: [venueId], references: [id])
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model Venue {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
+  city           String
+  state          String
+  address        String
+  description    String?
+  imageUrl       String?
+  provider       ProviderType
+  providerConfig String
+  pricePerHour   Int
+  openHour       Int          @default(7)
+  closeHour      Int          @default(22)
+  courts         Court[]
+  admins         User[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+model Court {
+  id         String    @id @default(cuid())
+  venueId    String
+  venue      Venue     @relation(fields: [venueId], references: [id], onDelete: Cascade)
+  name       String
+  externalId String?
+  surface    String    @default("Saibro")
+  bookings   Booking[]
+}
+
+model Booking {
+  id                String        @id @default(cuid())
+  courtId           String
+  court             Court         @relation(fields: [courtId], references: [id])
+  userId            String?
+  user              User?         @relation(fields: [userId], references: [id])
+  playerName        String
+  playerEmail       String
+  playerPhone       String?
+  startAt           DateTime
+  endAt             DateTime
+  durationHours     Int
+  amountCents       Int
+  status            BookingStatus @default(PENDING_PAYMENT)
+  externalBookingId String?
+  payment           Payment?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([courtId, startAt])
+  @@index([userId])
+  @@index([playerEmail])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  bookingId     String        @unique
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  mercadoPagoId String?
+  preferenceId  String?
+  status        PaymentStatus @default(PENDING)
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
