@@ -6,24 +6,36 @@ import type { VenueListItem } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const venues = await prisma.venue.findMany({
-    include: { _count: { select: { courts: true } } },
-    orderBy: { name: "asc" },
-  });
+  let items: VenueListItem[] = [];
+  let dbError: string | null = null;
 
-  const items: VenueListItem[] = venues.map((v) => ({
-    id: v.id,
-    name: v.name,
-    slug: v.slug,
-    city: v.city,
-    state: v.state,
-    address: v.address,
-    description: v.description,
-    imageUrl: v.imageUrl,
-    provider: v.provider,
-    pricePerHour: v.pricePerHour / 100,
-    courtsCount: v._count.courts,
-  }));
+  if (!process.env.DATABASE_URL) {
+    dbError = "DATABASE_URL não está configurada. Adicione a URL do Neon nas variáveis da Vercel.";
+  } else {
+    try {
+      const venues = await prisma.venue.findMany({
+        include: { _count: { select: { courts: true } } },
+        orderBy: { name: "asc" },
+      });
+
+      items = venues.map((v) => ({
+        id: v.id,
+        name: v.name,
+        slug: v.slug,
+        city: v.city,
+        state: v.state,
+        address: v.address,
+        description: v.description,
+        imageUrl: v.imageUrl,
+        provider: v.provider,
+        pricePerHour: v.pricePerHour / 100,
+        courtsCount: v._count.courts,
+      }));
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Erro ao conectar no banco";
+      dbError = `${msg}. Use a connection string pooled do Neon e rode npm run db:seed.`;
+    }
+  }
 
   return (
     <div>
@@ -47,12 +59,25 @@ export default async function HomePage() {
         </Link>
       </section>
 
+      {dbError && (
+        <section className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          <p className="font-semibold">Erro de configuração (produção)</p>
+          <p className="mt-2">{dbError}</p>
+          <p className="mt-2">
+            Teste:{" "}
+            <Link href="/api/health" className="underline">
+              /api/health
+            </Link>
+          </p>
+        </section>
+      )}
+
       <h2 className="mb-4 text-xl font-semibold">Escolas e clubes</h2>
-      {items.length === 0 ? (
+      {items.length === 0 && !dbError ? (
         <p className="rounded-xl border border-dashed p-8 text-center text-[var(--muted)]">
-          Nenhuma escola cadastrada. Execute{" "}
-          <code className="rounded bg-gray-100 px-1">npm run db:seed</code> após
-          configurar o banco.
+          Nenhuma escola cadastrada. Rode{" "}
+          <code className="rounded bg-gray-100 px-1">npm run db:seed</code> com a
+          URL do Neon.
         </p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2">
