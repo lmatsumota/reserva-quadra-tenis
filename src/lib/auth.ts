@@ -1,9 +1,11 @@
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
 import type { UserRole } from "@prisma/client";
 
-const COOKIE = "rq_session";
+export const SESSION_COOKIE = "rq_session";
+const COOKIE = SESSION_COOKIE;
 const MAX_AGE = 60 * 60 * 24 * 30;
 
 export type SessionUser = {
@@ -59,20 +61,25 @@ export async function verifySessionToken(
   }
 }
 
-export async function setSessionCookie(token: string) {
-  const jar = await cookies();
-  jar.set(COOKIE, token, {
+export function sessionCookieOptions() {
+  return {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
+    sameSite: "lax" as const,
     path: "/",
     maxAge: MAX_AGE,
-  });
+  };
 }
 
-export async function clearSessionCookie() {
-  const jar = await cookies();
-  jar.delete(COOKIE);
+/** Define o cookie de sessão no Response retornado (obrigatório em Route Handlers no Next 15). */
+export function attachSessionCookie(response: NextResponse, token: string) {
+  response.cookies.set(COOKIE, token, sessionCookieOptions());
+  return response;
+}
+
+export function clearSessionOnResponse(response: NextResponse) {
+  response.cookies.set(COOKIE, "", { ...sessionCookieOptions(), maxAge: 0 });
+  return response;
 }
 
 export async function getSession(): Promise<SessionUser | null> {

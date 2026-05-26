@@ -19,25 +19,44 @@ export function AuthForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     const url = mode === "login" ? "/api/auth/login" : "/api/auth/register";
     const body =
       mode === "login"
         ? { email, password }
         : { name, email, password, phone: phone || undefined };
 
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    setLoading(false);
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
 
-    if (!res.ok) {
-      setError(data.error ?? "Erro");
-      return;
+      let data: { error?: string } = {};
+      const text = await res.text();
+      if (text) {
+        try {
+          data = JSON.parse(text) as { error?: string };
+        } catch {
+          setError("Resposta inválida do servidor. O app está rodando?");
+          return;
+        }
+      }
+
+      if (!res.ok) {
+        setError(data.error ?? `Erro ${res.status}`);
+        return;
+      }
+
+      window.location.href = redirect;
+    } catch {
+      setError(
+        "Não foi possível conectar ao servidor. Rode npm run dev e tente de novo."
+      );
+    } finally {
+      setLoading(false);
     }
-    window.location.href = redirect;
   }
 
   return (
